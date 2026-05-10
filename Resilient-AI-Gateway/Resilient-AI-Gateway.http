@@ -1,0 +1,6 @@
+@Resilient_AI_Gateway_HostAddress = http://localhost:5243
+
+GET {{Resilient_AI_Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,7 @@
+﻿services:
+  resilient-ai-gateway:
+    image: resilient-ai-gateway
+    build:
+      context: .
+      dockerfile: Resilient-AI-Gateway/Dockerfile
+
