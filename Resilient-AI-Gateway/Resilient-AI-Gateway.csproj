@@ -27,7 +27,6 @@
         <Folder Include="Middleware\"/>
         <Folder Include="mongo\"/>
         <Folder Include="nginx\"/>
-        <Folder Include="Resilience\"/>
     </ItemGroup>
 
     <ItemGroup>
