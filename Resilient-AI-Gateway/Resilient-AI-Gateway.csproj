@@ -21,7 +21,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Configuration\"/>
         <Folder Include="Endpoints\"/>
         <Folder Include="Exceptions\"/>
         <Folder Include="Logging\"/>
