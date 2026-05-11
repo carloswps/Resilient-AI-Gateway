@@ -10,12 +10,29 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3"/>
+        <PackageReference Include="Polly.Core" Version="8.6.6"/>
+        <PackageReference Include="Polly.Extensions" Version="8.6.6"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Configuration\"/>
+        <Folder Include="Endpoints\"/>
+        <Folder Include="Exceptions\"/>
+        <Folder Include="Logging\"/>
+        <Folder Include="Middleware\"/>
+        <Folder Include="mongo\"/>
+        <Folder Include="nginx\"/>
+        <Folder Include="Resilience\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Resilient-AI-Gateway.Shared\Resilient-AI-Gateway.Shared.csproj"/>
     </ItemGroup>
 
 </Project>
