@@ -4,4 +4,29 @@
     build:
       context: .
       dockerfile: Resilient-AI-Gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - MongoDb__ConnectionString=mongodb://mongo:27017
+      - MongoDb__DatabaseName=resilient_gateway
+    depends_on:
+      mongo:
+        condition: service_healthy
 
+  mongo:
+    image: mongo:7
+    container_name: gateway_mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: resilient_gateway
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+volumes:
+  mongo_data:
