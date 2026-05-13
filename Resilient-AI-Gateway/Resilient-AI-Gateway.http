@@ -1,6 +1,17 @@
 @Resilient_AI_Gateway_HostAddress = http://localhost:5243
 
-GET {{Resilient_AI_Gateway_HostAddress}}/weatherforecast/
-Accept: application/json
+### Health Check
+GET {{Resilient_AI_Gateway_HostAddress}}/health
 
-###
+### Inference
+POST {{Resilient_AI_Gateway_HostAddress}}/api/v1/inference
+Content-Type: application/json
+
+{
+  "model": "gpt2",
+  "inputs": "The quick brown fox",
+  "parameters": {
+    "max_new_tokens": 50,
+    "temperature": 0.7
+  }
+}
