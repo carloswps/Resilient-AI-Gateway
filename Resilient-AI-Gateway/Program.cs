@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.Options;
 using Resilient_AI_Gateway.Configuration;
 using Resilient_AI_Gateway.Endpoints;
@@ -27,12 +28,11 @@ builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<ResilienceOpt
 builder.Services.AddSingleton<LoggingChannel>();
 builder.Services.AddSingleton<IRequestLogger, RequestLogger>();
 builder.Services.AddSingleton<IGatewayService, GatewayService>();
+builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment()) app.MapOpenApi();
-
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
