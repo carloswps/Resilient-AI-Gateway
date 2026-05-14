@@ -6,6 +6,7 @@ GET {{Resilient_AI_Gateway_HostAddress}}/health
 ### Inference
 POST {{Resilient_AI_Gateway_HostAddress}}/api/v1/inference
 Content-Type: application/json
+X-Gateway-Key: key-client-a
 
 {
   "model": "gpt2",

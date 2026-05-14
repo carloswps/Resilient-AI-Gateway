@@ -1,12 +1,22 @@
 using System.Text.Json;
+using DotNetEnv;
 using Microsoft.Extensions.Options;
 using Resilient_AI_Gateway.Configuration;
 using Resilient_AI_Gateway.Endpoints;
 using Resilient_AI_Gateway.Logging;
+using Resilient_AI_Gateway.Middleware;
 using Resilient_AI_Gateway.Services;
 using Scalar.AspNetCore;
 
+
+// Load environment variables
+Env.Load();
+
+// Create a builder for the web application.
 var builder = WebApplication.CreateBuilder(args);
+
+var hfToken = Environment.GetEnvironmentVariable("HuggingFace:ApiToken");
+if (!string.IsNullOrEmpty(hfToken)) builder.Configuration["HuggingFace:ApiToken"] = hfToken;
 
 // Add services to the container.
 builder.Services.AddOpenApi();
@@ -40,6 +50,9 @@ if (app.Environment.IsDevelopment())
 }
 
 //app.UseHttpsRedirection();
+
+// Middleware for API key authentication
+app.UseMiddleware<ApiKeyAuthMiddleware>();
 
 app.MapInferenceEndpoints();
 app.MapHealthEndpoints();
