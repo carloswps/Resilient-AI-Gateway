@@ -36,11 +36,15 @@ builder.Services.Configure<HuggingFaceOptions>(
 builder.Services.Configure<GatewayOptions>(
     builder.Configuration.GetSection(GatewayOptions.SectionName));
 
+builder.Services.Configure<MongoDbOptions>(
+    builder.Configuration.GetSection(MongoDbOptions.SectionName));
+
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<ResilienceOptions>>().Value);
 builder.Services.AddSingleton<LoggingChannel>();
 builder.Services.AddSingleton<IRequestLogger, RequestLogger>();
 builder.Services.AddSingleton<IGatewayService, GatewayService>();
 builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+builder.Services.AddHostedService<MongoRequestLogger>();
 
 var app = builder.Build();
 
@@ -55,6 +59,9 @@ if (app.Environment.IsDevelopment())
 
 // Middleware for API key authentication
 app.UseMiddleware<ApiKeyAuthMiddleware>();
+
+// Middleware for request timing
+app.UseMiddleware<RequestTimingMiddleware>();
 
 app.MapInferenceEndpoints();
 app.MapHealthEndpoints();
