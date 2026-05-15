@@ -1,13 +1,13 @@
 // Script to initialize the database
 // Automatically run on container startup
-db = db.getSiblingDB('resilient-ai-gateway');
+db = db.getSiblingDB('resilient_gateway');
 
-// Create the requests_logs collection
-db.createCollection('requests_logs');
-db.requests_logs.createIndex({ timestamp: 1}, { expireAfterSeconds: 3600 }) // Expire logs after 1 hour to study trends.
-db.requests_logs.createIndex({ "model_used": 1, "status_code": 1});
-db.requests_logs.createIndex({ "client_id": 1, "timestamp": -1});
-db.requests_logs.createIndex({ "request_id": 1}, { unique: true});
+// Create the request_logs collection
+db.createCollection('request_logs');
+db.request_logs.createIndex({ "timestamp": 1 }, { expireAfterSeconds: 3600 }) // Expire logs after 1 hour to study trends.
+db.request_logs.createIndex({ "model_used": 1, "status_code": 1 });
+db.request_logs.createIndex({ "client_id": 1, "timestamp": -1 });
+db.request_logs.createIndex({ "request_id": 1 }, { unique: true });
 
 // error_events collection
 db.createCollection('error_events');       

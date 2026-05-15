@@ -26,10 +26,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="nginx\"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <ProjectReference Include="..\Resilient-AI-Gateway.Shared\Resilient-AI-Gateway.Shared.csproj"/>
     </ItemGroup>
 
