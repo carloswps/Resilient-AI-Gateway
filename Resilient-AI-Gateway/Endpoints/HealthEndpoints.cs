@@ -19,22 +19,21 @@ public static class HealthEndpoints
                 operation.Description = "Health check endpoint";
                 return Task.CompletedTask;
             });
-        
-        app.MapGet("/healh/ready", () =>
-        {
-            // TODO: implements after correct health check for (Db Ping, HF connectivity).
-            return Results.Ok(new
+
+        app.MapGet("/health/ready", () =>
             {
-                status = "Healthy",
-                timestamp = DateTime.UtcNow,
-                checks= new
+                // TODO: implements after correct health check for (Db Ping, HF connectivity).
+                return Results.Ok(new
                 {
-                    database = "Healthy",
-                    huggingface_connectivity = "Healthy"
-                }
-                
-            });
-        })
+                    status = "Healthy",
+                    timestamp = DateTime.UtcNow,
+                    checks = new
+                    {
+                        database = "Healthy",
+                        huggingface_connectivity = "Healthy"
+                    }
+                });
+            })
             .WithName("Readiness")
             .AddOpenApiOperationTransformer((operation, context, ct) =>
             {

@@ -3,7 +3,10 @@
 ### Health Check
 GET {{Resilient_AI_Gateway_HostAddress}}/health
 
-### Inference
+### Readiness Check
+GET {{Resilient_AI_Gateway_HostAddress}}/health/ready
+
+### Inference — Success
 POST {{Resilient_AI_Gateway_HostAddress}}/api/v1/inference
 Content-Type: application/json
 X-Gateway-Key: key-client-a
@@ -15,4 +18,23 @@ X-Gateway-Key: key-client-a
     "max_new_tokens": 50,
     "temperature": 0.7
   }
+}
+
+### Inference — Unauthorized (missing API key)
+POST {{Resilient_AI_Gateway_HostAddress}}/api/v1/inference
+Content-Type: application/json
+
+{
+  "model": "deepseek-ai/DeepSeek-V4-Pro",
+  "inputs": "test"
+}
+
+### Inference — Unauthorized (invalid API key)
+POST {{Resilient_AI_Gateway_HostAddress}}/api/v1/inference
+Content-Type: application/json
+X-Gateway-Key: invalid-key
+
+{
+  "model": "deepseek-ai/DeepSeek-V4-Pro",
+  "inputs": "test"
 }

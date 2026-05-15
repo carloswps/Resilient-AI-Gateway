@@ -32,12 +32,9 @@ public class RequestTimingMiddleware
             context.Items["RequestStartTime"] = startTime;
             context.Items["RequestDurationMs"] = elapsedMs;
 
-            // Add the elapsed time to the response headers
-            context.Response.Headers["X-Request-Duration"] = $"{elapsedMs}ms";
-
             if (elapsedMs > 500)
                 _logger.LogWarning(
-                    "Slow request: {Method} {Path} he took {Duration}ms",
+                    "Slow request: {Method} {Path} took {Duration}ms",
                     context.Request.Method,
                     context.Request.Path,
                     elapsedMs

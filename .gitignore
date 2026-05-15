@@ -4,3 +4,7 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 .env
+
+# SSL certificates (never commit)
+Resilient-AI-Gateway/nginx/ssl/*
+!Resilient-AI-Gateway/nginx/ssl/.gitkeep
