@@ -4,6 +4,7 @@ using Polly.Fallback;
 using Polly.Retry;
 using Resilient_AI_Gateway.Configuration;
 using Resilient_AI_Gateway.Exceptions;
+using Resilient_AI_Gateway.Models;
 using Resilient_AI_Gateway.Services;
 
 namespace Resilient_AI_Gateway.Resilience;
@@ -13,8 +14,7 @@ public static class ResiliencePipelineFactory
     public static ResiliencePipeline<HttpResponseMessage> Create(
         ResilienceOptions options,
         ILogger logger,
-        IHuggingFaceClient huggingFaceClient
-    )
+        IHuggingFaceClient huggingFaceClient)
     {
         return new ResiliencePipelineBuilder<HttpResponseMessage>()
             .AddTimeout(TimeSpan.FromSeconds(options.GlobalTimeoutSeconds))
@@ -51,14 +51,26 @@ public static class ResiliencePipelineFactory
 
                 FallbackAction = async args =>
                 {
+                    var originalRequest = args.Context.GetRequest();
+                    if (originalRequest is null)
+                        throw new AllModelsUnavailableException("Request context lost.");
+
                     foreach (var fallbackModel in options.FallbackModels)
                     {
                         logger.LogWarning("Tentando modelo fallback: {Model}", fallbackModel);
 
-                        var request = args.Context.GetRequest();
-                        var fallbackResponse = await huggingFaceClient.CallModelAsync(
-                            fallbackModel,
-                            request,
+                        var fallbackRequest = new ChatCompletionRequest
+                        {
+                            Model = fallbackModel,
+                            Messages = originalRequest.Messages,
+                            MaxTokens = originalRequest.MaxTokens,
+                            Temperature = originalRequest.Temperature,
+                            TopP = originalRequest.TopP,
+                            Stream = originalRequest.Stream
+                        };
+
+                        var fallbackResponse = await huggingFaceClient.CallChatCompletionAsync(
+                            fallbackRequest,
                             args.Context.CancellationToken
                         );
 

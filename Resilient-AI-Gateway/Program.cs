@@ -10,13 +10,15 @@ using Scalar.AspNetCore;
 
 
 // Load environment variables
-Env.Load();
+var envPath = Path.Combine(Directory.GetCurrentDirectory(), "..", ".env");
+if (File.Exists(envPath))
+    Env.Load(envPath);
+else
+    Env.Load();
+
 
 // Create a builder for the web application.
 var builder = WebApplication.CreateBuilder(args);
-
-var hfToken = Environment.GetEnvironmentVariable("HuggingFace:ApiToken");
-if (!string.IsNullOrEmpty(hfToken)) builder.Configuration["HuggingFace:ApiToken"] = hfToken;
 
 // Add services to the container.
 builder.Services.AddOpenApi();

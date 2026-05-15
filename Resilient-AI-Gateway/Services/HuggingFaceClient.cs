@@ -1,30 +1,27 @@
-using System.Text.Json;
 using Resilient_AI_Gateway.Models;
 
 namespace Resilient_AI_Gateway.Services;
 
 /// <summary>
-/// Represents a client for interacting with Hugging Face's inference API.
-/// Provides functionality to send inference requests to specific models hosted on Hugging Face.
+///     Represents a client for interacting with Hugging Face's inference API.
+///     Provides functionality to send inference requests to specific models hosted on Hugging Face.
 /// </summary>
 public class HuggingFaceClient : IHuggingFaceClient
 {
     private readonly HttpClient _httpClient;
-    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
-    public HuggingFaceClient(HttpClient httpClient, JsonSerializerOptions jsonSerializerOptions)
+    public HuggingFaceClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _jsonSerializerOptions = jsonSerializerOptions;
     }
 
-    public async Task<HttpResponseMessage> CallModelAsync(string modelId, HuggingFaceRequest request,
+    public async Task<HttpResponseMessage> CallChatCompletionAsync(
+        ChatCompletionRequest request,
         CancellationToken cancellationToken = default)
     {
         var response = await _httpClient.PostAsJsonAsync(
-            modelId,
+            "chat/completions",
             request,
-            _jsonSerializerOptions,
             cancellationToken
         );
 

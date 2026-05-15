@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Polly;
 using Resilient_AI_Gateway.Configuration;
 using Resilient_AI_Gateway.Exceptions;
 using Resilient_AI_Gateway.Logging;
@@ -9,20 +8,21 @@ using Resilient_AI_Gateway.Resilience;
 namespace Resilient_AI_Gateway.Services;
 
 /// <summary>
-/// Provides gateway services for interacting with external AI model providers.
-/// This class processes inference requests, using a resilient strategy to handle
-/// potential failures and ensure reliable communication with the AI models.
+///     Provides gateway services for interacting with external AI model providers.
+///     This class processes inference requests, using a resilient strategy to handle
+///     potential failures and ensure reliable communication with the AI models.
 /// </summary>
 public class GatewayService : IGatewayService
 {
     private readonly IHuggingFaceClient _huggingFaceClient;
     private readonly ILogger<GatewayService> _logger;
-    private readonly ResilienceOptions _resilienceOptions;
     private readonly IRequestLogger _requestLogger;
+    private readonly ResilienceOptions _resilienceOptions;
 
-    public GatewayService(IHuggingFaceClient huggingFaceClient, 
+    public GatewayService(
+        IHuggingFaceClient huggingFaceClient,
         ILogger<GatewayService> logger,
-        ResilienceOptions resilienceOptions, 
+        ResilienceOptions resilienceOptions,
         IRequestLogger requestLogger)
     {
         _huggingFaceClient = huggingFaceClient;
@@ -31,43 +31,70 @@ public class GatewayService : IGatewayService
         _requestLogger = requestLogger;
     }
 
-    public async Task<InferenceResponse> ProcessAsync(InferenceRequest request, CancellationToken cancellationToken = default)
+    public async Task<InferenceResponse> ProcessAsync(
+        InferenceRequest request,
+        CancellationToken cancellationToken = default)
     {
         var requestId = Guid.NewGuid().ToString();
         var stopwatch = Stopwatch.StartNew();
         var startTime = DateTime.UtcNow;
 
-        var pipeline = ResiliencePipelineFactory.Create(_resilienceOptions, _logger, _huggingFaceClient);
+        var pipeline = ResiliencePipelineFactory.Create(
+            _resilienceOptions, _logger, _huggingFaceClient);
 
-        var hfRequest = new HuggingFaceRequest
+        var chatRequest = new ChatCompletionRequest
         {
-            Inputs = request.Inputs,
-            Parameters = request.Parameters
+            Model = request.Model,
+            Messages =
+            [
+                new ChatMessage
+                {
+                    Role = "user",
+                    Content = request.Inputs
+                }
+            ],
+            MaxTokens = request.Parameters?.MaxNewTokens,
+            Temperature = request.Parameters?.Temperature,
+            TopP = request.Parameters?.TopP
         };
 
         try
         {
-            var response = await pipeline.ExecuteAsync(async ct => await _huggingFaceClient.CallModelAsync(
-                request.Model, hfRequest, ct), cancellationToken);
+            var response = await pipeline.ExecuteAsync(
+                async ct =>
+                {
+                    var chatReqWithModel = new ChatCompletionRequest
+                    {
+                        Model = chatRequest.Model,
+                        Messages = chatRequest.Messages,
+                        MaxTokens = chatRequest.MaxTokens,
+                        Temperature = chatRequest.Temperature,
+                        TopP = chatRequest.TopP
+                    };
+                    return await _huggingFaceClient.CallChatCompletionAsync(
+                        chatReqWithModel, ct);
+                },
+                cancellationToken);
 
             stopwatch.Stop();
 
-            var hfResponse =
-                await response.Content.ReadFromJsonAsync<HuggingFaceResponse[]>(cancellationToken: cancellationToken);
+            var chatResponse = await response.Content
+                .ReadFromJsonAsync<ChatCompletionResponse>(
+                    cancellationToken);
 
-            var generatedText = hfResponse?.FirstOrDefault()?.GeneratedText;
+            var generatedText = chatResponse?.Choices?.FirstOrDefault()?.Message?.Content;
 
             _requestLogger.Log(new RequestLogDocument
             {
                 RequestId = requestId,
                 Timestamp = startTime,
                 Endpoint = "/api/v1/inference",
-                HttpMethod = "Post",
+                HttpMethod = "POST",
                 RequestedModel = request.Model,
                 ModelUsed = request.Model,
                 StatusCode = 200,
                 LatencyMs = stopwatch.ElapsedMilliseconds,
-                ResponseSizeBytes = generatedText?.Length ?? 0
+                ResponseSizeBytes = generatedText?.Length
             });
 
             return new InferenceResponse
@@ -87,10 +114,12 @@ public class GatewayService : IGatewayService
                 RequestId = requestId,
                 Timestamp = startTime,
                 Endpoint = "/api/v1/inference",
-                HttpMethod = "Post",
+                HttpMethod = "POST",
                 RequestedModel = request.Model,
                 ModelUsed = request.Model,
-                StatusCode = 200,
+                FallbackActivated = true,
+                RetryAttempts = _resilienceOptions.MaxRetryAttempts,
+                StatusCode = 503,
                 LatencyMs = stopwatch.ElapsedMilliseconds,
                 Error = ex.Message
             });
@@ -107,7 +136,7 @@ public class GatewayService : IGatewayService
         catch (Exception ex)
         {
             stopwatch.Stop();
-            
+
             _requestLogger.Log(new RequestLogDocument
             {
                 RequestId = requestId,

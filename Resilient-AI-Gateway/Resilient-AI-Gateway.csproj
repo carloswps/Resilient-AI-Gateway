@@ -34,4 +34,10 @@
         <ProjectReference Include="..\Resilient-AI-Gateway.Shared\Resilient-AI-Gateway.Shared.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <None Update=".env">
+            <DependentUpon>.dockerignore</DependentUpon>
+        </None>
+    </ItemGroup>
+
 </Project>

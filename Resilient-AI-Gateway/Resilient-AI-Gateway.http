@@ -9,7 +9,7 @@ Content-Type: application/json
 X-Gateway-Key: key-client-a
 
 {
-  "model": "gpt2",
+  "model": "deepseek-ai/DeepSeek-V4-Pro",
   "inputs": "The quick brown fox",
   "parameters": {
     "max_new_tokens": 50,

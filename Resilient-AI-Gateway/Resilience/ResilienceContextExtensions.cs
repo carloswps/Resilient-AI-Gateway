@@ -5,15 +5,15 @@ namespace Resilient_AI_Gateway.Resilience;
 
 public static class ResilienceContextExtensions
 {
-    private static readonly ResiliencePropertyKey<HuggingFaceRequest> RequestKey =
-        new("HuggingFaceRequest");
+    private static readonly ResiliencePropertyKey<ChatCompletionRequest> RequestKey =
+        new("ChatCompletionRequest");
 
-    public static void SetRequest(this ResilienceContext context, HuggingFaceRequest request)
+    public static void SetRequest(this ResilienceContext context, ChatCompletionRequest request)
     {
         context.Properties.Set(RequestKey, request);
     }
 
-    public static HuggingFaceRequest? GetRequest(this ResilienceContext context)
+    public static ChatCompletionRequest? GetRequest(this ResilienceContext context)
     {
         return context.Properties.TryGetValue(RequestKey, out var request) ? request : null;
     }

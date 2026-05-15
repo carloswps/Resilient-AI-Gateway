@@ -4,9 +4,8 @@ namespace Resilient_AI_Gateway.Services;
 
 public interface IHuggingFaceClient
 {
-    public Task<HttpResponseMessage> CallModelAsync(
-        string modelId,
-        HuggingFaceRequest request,
+    Task<HttpResponseMessage> CallChatCompletionAsync(
+        ChatCompletionRequest request,
         CancellationToken cancellationToken = default
     );
 }
