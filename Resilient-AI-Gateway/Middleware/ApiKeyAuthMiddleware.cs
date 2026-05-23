@@ -13,8 +13,13 @@ public class ApiKeyAuthMiddleware
         "/health/live",
         "/openapi/v1.json",
         "/scalar/v1/api-docs",
-        "/swagger/v1/swagger.json"
+        "/swagger/v1/swagger.json",
+        "/scalar/v1",
+        "/scalar/scalar.js",
+        "/scalar/scalar.aspnetcore.js",
+        "/scalar/favicon.svg"
     };
+
 
     private readonly RequestDelegate _next;
     private readonly GatewayOptions _options;

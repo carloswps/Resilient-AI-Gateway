@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Resilient_AI_Gateway.Services;
+
 namespace Resilient_AI_Gateway.Endpoints;
 
 public static class HealthEndpoints
@@ -8,37 +11,38 @@ public static class HealthEndpoints
             {
                 return Results.Ok(new
                 {
-                    Status = "Healthy",
-                    Timestamp = DateTime.UtcNow
+                    status = "Healthy",
+                    timestamp = DateTime.UtcNow
                 });
             })
-            .WithName("Health")
+            .WithName("Liveness")
             .AddOpenApiOperationTransformer((operation, context, ct) =>
             {
-                operation.Summary = "Health check";
-                operation.Description = "Health check endpoint";
+                operation.Summary = "Liveness check";
+                operation.Description = "Basic liveness check — always returns healthy if the process is running.";
                 return Task.CompletedTask;
             });
 
-        app.MapGet("/health/ready", () =>
+        app.MapGet("/health/ready", async (GatewayHealthCheck healthCheck) =>
             {
-                // TODO: implements after correct health check for (Db Ping, HF connectivity).
-                return Results.Ok(new
+                var result = await healthCheck.CheckHealthAsync(new HealthCheckContext());
+
+                var response = new
                 {
-                    status = "Healthy",
+                    status = result.Status.ToString(),
                     timestamp = DateTime.UtcNow,
-                    checks = new
-                    {
-                        database = "Healthy",
-                        huggingface_connectivity = "Healthy"
-                    }
-                });
+                    checks = result.Data.ToDictionary(kv => kv.Key, kv => kv.Value)
+                };
+
+                return result.Status == HealthStatus.Healthy
+                    ? Results.Ok(response)
+                    : Results.Json(response, statusCode: StatusCodes.Status503ServiceUnavailable);
             })
             .WithName("Readiness")
             .AddOpenApiOperationTransformer((operation, context, ct) =>
             {
                 operation.Summary = "Readiness check";
-                operation.Description = "Readiness check endpoint";
+                operation.Description = "Checks if MongoDB and Hugging Face API are reachable.";
                 return Task.CompletedTask;
             });
     }

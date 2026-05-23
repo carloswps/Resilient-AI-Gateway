@@ -17,6 +17,7 @@
         <PackageReference Include="Polly.Extensions" Version="8.6.6"/>
         <PackageReference Include="Scalar.AspNetCore" Version="2.14.11"/>
         <PackageReference Include="System.Threading.Tasks" Version="4.3.0"/>
+        <PackageReference Include="Asp.Versioning.Http" Version="8.1.0"/>
     </ItemGroup>
 
     <ItemGroup>

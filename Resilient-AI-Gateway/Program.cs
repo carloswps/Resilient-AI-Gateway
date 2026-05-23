@@ -7,6 +7,8 @@ using Resilient_AI_Gateway.Logging;
 using Resilient_AI_Gateway.Middleware;
 using Resilient_AI_Gateway.Services;
 using Scalar.AspNetCore;
+using Asp.Versioning;
+using Asp.Versioning.Conventions;
 
 
 // Load environment variables
@@ -39,14 +41,35 @@ builder.Services.Configure<GatewayOptions>(
 builder.Services.Configure<MongoDbOptions>(
     builder.Configuration.GetSection(MongoDbOptions.SectionName));
 
+builder.Services.Configure<ResilienceOptions>(
+    builder.Configuration.GetSection(ResilienceOptions.SectionName));
+
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<ResilienceOptions>>().Value);
 builder.Services.AddSingleton<LoggingChannel>();
 builder.Services.AddSingleton<IRequestLogger, RequestLogger>();
 builder.Services.AddSingleton<IGatewayService, GatewayService>();
 builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.Web));
 builder.Services.AddHostedService<MongoRequestLogger>();
+builder.Services.AddHttpLogging();
+
+builder.Services.AddHttpClient("HealthCheck");
+builder.Services.AddHealthChecks()
+    .AddCheck<GatewayHealthCheck>("gateway_health");
+
+builder.Services.AddSingleton<GatewayHealthCheck>();
+
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = new UrlSegmentApiVersionReader();
+});
 
 var app = builder.Build();
+
+app.UseHttpLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
