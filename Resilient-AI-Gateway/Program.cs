@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Asp.Versioning;
 using DotNetEnv;
 using Microsoft.Extensions.Options;
 using Resilient_AI_Gateway.Configuration;
@@ -7,8 +8,6 @@ using Resilient_AI_Gateway.Logging;
 using Resilient_AI_Gateway.Middleware;
 using Resilient_AI_Gateway.Services;
 using Scalar.AspNetCore;
-using Asp.Versioning;
-using Asp.Versioning.Conventions;
 
 
 // Load environment variables
@@ -51,6 +50,7 @@ builder.Services.AddSingleton<IGatewayService, GatewayService>();
 builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.Web));
 builder.Services.AddHostedService<MongoRequestLogger>();
 builder.Services.AddHttpLogging();
+builder.Services.AddSingleton<IModelService, ModelService>();
 
 builder.Services.AddHttpClient("HealthCheck");
 builder.Services.AddHealthChecks()
@@ -88,5 +88,6 @@ app.UseMiddleware<RequestTimingMiddleware>();
 
 app.MapInferenceEndpoints();
 app.MapHealthEndpoints();
+app.MapModelEndpoints();
 
 app.Run();

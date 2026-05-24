@@ -17,7 +17,8 @@ public class ApiKeyAuthMiddleware
         "/scalar/v1",
         "/scalar/scalar.js",
         "/scalar/scalar.aspnetcore.js",
-        "/scalar/favicon.svg"
+        "/scalar/favicon.svg",
+        "/api/v1/models"
     };
 
 
