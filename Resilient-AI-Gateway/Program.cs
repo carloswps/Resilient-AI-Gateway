@@ -2,6 +2,7 @@ using System.Text.Json;
 using Asp.Versioning;
 using DotNetEnv;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using Resilient_AI_Gateway.Configuration;
 using Resilient_AI_Gateway.Endpoints;
 using Resilient_AI_Gateway.Logging;
@@ -37,6 +38,12 @@ builder.Services.Configure<HuggingFaceOptions>(
 builder.Services.Configure<GatewayOptions>(
     builder.Configuration.GetSection(GatewayOptions.SectionName));
 
+var mongoConn = builder.Configuration["MongoDb:ConnectionString"];
+if (!string.IsNullOrEmpty(mongoConn))
+{
+    builder.Services.AddHostedService<MongoRequestLogger>();
+}
+
 builder.Services.Configure<MongoDbOptions>(
     builder.Configuration.GetSection(MongoDbOptions.SectionName));
 
@@ -48,7 +55,6 @@ builder.Services.AddSingleton<LoggingChannel>();
 builder.Services.AddSingleton<IRequestLogger, RequestLogger>();
 builder.Services.AddSingleton<IGatewayService, GatewayService>();
 builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.Web));
-builder.Services.AddHostedService<MongoRequestLogger>();
 builder.Services.AddHttpLogging();
 builder.Services.AddSingleton<IModelService, ModelService>();
 
