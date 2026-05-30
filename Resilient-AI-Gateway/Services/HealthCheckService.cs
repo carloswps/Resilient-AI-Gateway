@@ -9,17 +9,22 @@ namespace Resilient_AI_Gateway.Services;
 public class GatewayHealthCheck : IHealthCheck
 {
 
-    private readonly MongoClient _mongoClient;
+    private readonly MongoClient? _mongoClient;
     private readonly string _databaseName;
     private readonly HttpClient _httpClient;
     private readonly HuggingFaceOptions _hfOptions;
+    private readonly bool _mongoEnabled;
 
     public GatewayHealthCheck(
         IOptions<MongoDbOptions> mongoOptions,
         IHttpClientFactory httpClientFactory,
         IOptions<HuggingFaceOptions> hfOptions)
     {
-        _mongoClient = new MongoClient(mongoOptions.Value.ConnectionString);
+        _mongoEnabled = !string.IsNullOrEmpty(mongoOptions.Value.ConnectionString);
+        if (_mongoEnabled)
+        {
+            _mongoClient = new MongoClient(mongoOptions.Value.ConnectionString);
+        }
         _databaseName = mongoOptions.Value.DatabaseName;
         _httpClient = httpClientFactory.CreateClient("HealthCheck");
         _hfOptions = hfOptions.Value;

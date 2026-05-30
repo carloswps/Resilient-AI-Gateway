@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Asp.Versioning;
 using DotNetEnv;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Resilient_AI_Gateway.Configuration;
@@ -42,6 +43,13 @@ var mongoConn = builder.Configuration["MongoDb:ConnectionString"];
 if (!string.IsNullOrEmpty(mongoConn))
 {
     builder.Services.AddHostedService<MongoRequestLogger>();
+    builder.Services.AddSingleton<GatewayHealthCheck>();
+    builder.Services.AddHealthChecks()
+        .AddCheck<GatewayHealthCheck>("gateway_health");
+}
+else
+{
+    builder.Services.AddHealthChecks();
 }
 
 builder.Services.Configure<MongoDbOptions>(
@@ -58,13 +66,6 @@ builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.W
 builder.Services.AddHttpLogging();
 builder.Services.AddSingleton<IModelService, ModelService>();
 
-builder.Services.AddHttpClient("HealthCheck");
-builder.Services.AddHealthChecks()
-    .AddCheck<GatewayHealthCheck>("gateway_health");
-
-builder.Services.AddSingleton<GatewayHealthCheck>();
-
-
 builder.Services.AddApiVersioning(options =>
 {
     options.DefaultApiVersion = new ApiVersion(1, 0);
@@ -73,16 +74,29 @@ builder.Services.AddApiVersioning(options =>
     options.ApiVersionReader = new UrlSegmentApiVersionReader();
 });
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Remove("X-Frame-Options");
+    context.Response.Headers.Append("Content-Security-Policy",
+        "frame-ancestors 'self' https://*.huggingface.co https://huggingface.co");
+    await next();
+});
+
+app.UseForwardedHeaders();
 app.UseHttpLogging();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference();
-}
+app.MapOpenApi();
+app.MapScalarApiReference();
 
 //app.UseHttpsRedirection();
 
@@ -95,5 +109,7 @@ app.UseMiddleware<RequestTimingMiddleware>();
 app.MapInferenceEndpoints();
 app.MapHealthEndpoints();
 app.MapModelEndpoints();
+
+app.MapGet("/", () => Results.Redirect("/scalar/v1"));
 
 app.Run();

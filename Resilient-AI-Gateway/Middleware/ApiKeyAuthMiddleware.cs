@@ -8,16 +8,12 @@ public class ApiKeyAuthMiddleware
 {
     private static readonly PathString[] ExcludePaths =
     {
+        "/",
         "/health",
         "/health/ready",
         "/health/live",
-        "/openapi/v1.json",
-        "/scalar/v1/api-docs",
-        "/swagger/v1/swagger.json",
-        "/scalar/v1",
-        "/scalar/scalar.js",
-        "/scalar/scalar.aspnetcore.js",
-        "/scalar/favicon.svg",
+        "/openapi",
+        "/scalar",
         "/api/v1/models"
     };
 

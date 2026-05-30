@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Resilient_AI_Gateway.Services;
 
@@ -23,8 +24,22 @@ public static class HealthEndpoints
                 return Task.CompletedTask;
             });
 
-        app.MapGet("/health/ready", async (GatewayHealthCheck healthCheck) =>
+        app.MapGet("/health/ready", async ([FromServices] GatewayHealthCheck? healthCheck) =>
             {
+                if (healthCheck is null)
+                {
+                    return Results.Ok(new
+                    {
+                        status = "Healthy",
+                        timestamp = DateTime.UtcNow,
+                        checks = new
+                        {
+                            mongodb = "Disabled",
+                            huggingface_connectivity = "Skipped"
+                        }
+                    });
+                }
+
                 var result = await healthCheck.CheckHealthAsync(new HealthCheckContext());
 
                 var response = new
